@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="32ba1214-da1a-4227-a322-365208cae4a3" name="Changes" comment="Comienzo blade" />
+    <list default="true" id="32ba1214-da1a-4227-a322-365208cae4a3" name="Changes" comment="Comienzo blade">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,12 +33,15 @@
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="2cs15KL3CtqdHAaEGbQh15kjbQ7" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
     "Application.Main.executor": "Run",
     "Downloaded.Files.Path.Enabled": "true",
     "Repository.Attach.Annotations": "false",
@@ -103,6 +108,7 @@
       <workItem from="1708885290243" duration="4460000" />
       <workItem from="1708930982897" duration="6236000" />
       <workItem from="1708938525589" duration="2407000" />
+      <workItem from="1709053057625" duration="199000" />
     </task>
     <task id="LOCAL-00001" summary="Comienzo blade">
       <option name="closed" value="true" />
@@ -112,13 +118,22 @@
       <option name="project" value="LOCAL" />
       <updated>1708889736965</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Comienzo blade">
+      <option name="closed" value="true" />
+      <created>1709053093332</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1709053093332</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Comienzo blade" />
     <option name="LAST_COMMIT_MESSAGE" value="Comienzo blade" />
   </component>
