@@ -1,4 +1,4 @@
-package colegio.controlador.dao;
+package org.example.colegio.controlador.dao;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;

@@ -1,6 +1,6 @@
-package colegio.controlador.dao;
+package org.example.colegio.controlador.dao;
 
-import colegio.modelo.Alumno;
+import org.example.colegio.modelo.Alumno;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -13,6 +13,16 @@ import java.util.List;
 public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
     @PersistenceContext
     private EntityManager entityManager;
+
+    private static AlumnoJPADAO alumnoJPADAO = null;
+
+    public static AlumnoJPADAO instancia() {
+        if (alumnoJPADAO == null) {
+            alumnoJPADAO = new AlumnoJPADAO();
+            return alumnoJPADAO;
+        }
+        return alumnoJPADAO;
+    }
 
     @Override
     public void crearTabla() {
@@ -42,7 +52,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         try {
             TypedQuery<Alumno> query = entityManager.createQuery("SELECT a FROM Alumno a", Alumno.class);
             for (Alumno alumno : query.getResultList()) {
-                Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
                 Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
             }
             List<Alumno> resultados = query.getResultList();
@@ -76,10 +85,10 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
     }
 
     @Override
-    public void eliminardeTabla(Alumno alumno) {
+    public boolean eliminardeTabla(long id) {
         abrirEntityManager();
         try {
-            Alumno persona = entityManager.find(Alumno.class, alumno.getId());
+            Alumno persona = entityManager.find(Alumno.class, id);
             if (persona != null) {
                 entityManager.getTransaction().begin();
                 entityManager.remove(persona);
@@ -89,9 +98,10 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            throw new RuntimeException(e);
+            return false;
         }
         cerrarEntityManager();
+        return true;
     }
 
     @Override
@@ -114,23 +124,13 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
     public List<Alumno> listaAprobados() {
         abrirEntityManager();
         TypedQuery<Alumno> query = entityManager.createQuery(
-                "SELECT a FROM Alumno a " +
-                        "LEFT JOIN FETCH a.curso c " +
-                        "LEFT JOIN FETCH a.listaNotas n", Alumno.class
+                "SELECT a FROM Alumno a ", Alumno.class
         );
-        for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
+        for (Alumno alumno : query.getResultList()) {// fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
         List<Alumno> result = new ArrayList<>();
-
-        for (Alumno alumno : listaAlumnos) {
-            double media = alumno.mediaNotas();
-            if (media >=5) {
-                result.add(alumno);
-            }
-        }
 
         System.out.println("Tablas Alumnos listadas");
         cerrarEntityManager();
@@ -141,23 +141,14 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
     public List<Alumno> listaSuspensos() {
         abrirEntityManager();
         TypedQuery<Alumno> query = entityManager.createQuery(
-                "SELECT a FROM Alumno a " +
-                        "LEFT JOIN FETCH a.curso c " +
-                        "LEFT JOIN FETCH a.listaNotas n", Alumno.class
+                "SELECT a FROM Alumno a ", Alumno.class
         );
-        for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
+        for (Alumno alumno : query.getResultList()) {// fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
         List<Alumno> result = new ArrayList<>();
 
-        for (Alumno alumno : listaAlumnos) {
-            double media = alumno.mediaNotas();
-            if (media <5) {
-                result.add(alumno);
-            }
-        }
 
         System.out.println("Tablas Alumnos listadas");
         cerrarEntityManager();
@@ -173,7 +164,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
                         "ORDER BY a.nombre", Alumno.class
         );
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -190,37 +180,39 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
                 "SELECT a FROM Alumno a where a.id = :id", Alumno.class
         );
         query.setParameter("id", id);
-        for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
+        for (Alumno alumno : query.getResultList()) {// fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
 
         System.out.println("Tablas Alumnos listadas");
         cerrarEntityManager();
-        return listaAlumnos.getFirst();
+        if (listaAlumnos.isEmpty())
+            return null;
+        else
+            return listaAlumnos.get(0);
     }
 
-    public void agregarNota(Alumno alumno, Double nota) {
-        abrirEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-
-            List<Double> listaNotas = alumno.getListaNotas();
-            listaNotas.add(nota);
-
-            entityManager.merge(alumno);
-            entityManager.getTransaction().commit();
-
-        } catch (Exception e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-            e.printStackTrace();
-            System.err.println("* ERROR AL: AGREGAR NOTA *");
-        }
-        cerrarEntityManager();
-    }
+//    public void agregarNota(Alumno alumno, Double nota) {
+//        abrirEntityManager();
+//        try {
+//            entityManager.getTransaction().begin();
+//
+//            List<Double> listaNotas = alumno.getListaNotas();
+//            listaNotas.add(nota);
+//
+//            entityManager.merge(alumno);
+//            entityManager.getTransaction().commit();
+//
+//        } catch (Exception e) {
+//            if (entityManager.getTransaction().isActive()) {
+//                entityManager.getTransaction().rollback();
+//            }
+//            e.printStackTrace();
+//            System.err.println("* ERROR AL: AGREGAR NOTA *");
+//        }
+//        cerrarEntityManager();
+//    }
 
     @Override
     public List<Alumno> coincidenciaExactaNombre(String nombreRecibido) {
@@ -232,7 +224,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("nombre", nombreRecibido);
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -252,7 +243,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("nombre", "%" + nombreRecibido + "%");
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -268,11 +258,10 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         TypedQuery<Alumno> query = entityManager.createQuery(
                 "SELECT a FROM Alumno a " +
                         "LEFT JOIN FETCH a.curso c " +
-                        "WHERE a.nombre LIKE :nombre",Alumno.class
+                        "WHERE a.nombre LIKE :nombre", Alumno.class
         );
         query.setParameter("nombre", nombreRecibido + "%");
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -292,7 +281,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("nombre", "%" + nombreRecibido);
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -312,7 +300,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("dni", dniRecibido);
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -332,7 +319,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("dni", "%" + dniRecibido + "%");
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -352,7 +338,6 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
         );
         query.setParameter("dni", dniRecibido + "%");
         for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -372,8 +357,7 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
                         "WHERE a.DNI LIKE :dni", Alumno.class
         );
         query.setParameter("dni", "%" + dniRecibido);
-        for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
+        for (Alumno alumno : query.getResultList()) {// fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
@@ -387,23 +371,13 @@ public class AlumnoJPADAO implements DAOAlumnosInterface<Alumno> {
     public List<Alumno> notaMediaAlum(double mediaRecibida) {
         abrirEntityManager();
         TypedQuery<Alumno> query = entityManager.createQuery(
-                "SELECT a FROM Alumno a " +
-                        "LEFT JOIN FETCH a.curso c " +
-                        "LEFT JOIN FETCH a.listaNotas n", Alumno.class
+                "SELECT a FROM Alumno a ", Alumno.class
         );
-        for (Alumno alumno : query.getResultList()) {
-            Hibernate.initialize(alumno.getListaNotas()); // fix lazy notas finder
+        for (Alumno alumno : query.getResultList()) {// fix lazy notas finder
             Hibernate.initialize(alumno.getCurso()); // fix lazy notas finder
         }
         List<Alumno> listaAlumnos = query.getResultList();
         List<Alumno> result = new ArrayList<>();
-
-        for (Alumno alumno : listaAlumnos) {
-            double media = alumno.mediaNotas();
-            if (media == mediaRecibida) {
-                result.add(alumno);
-            }
-        }
 
         System.out.println("Tablas Alumnos listadas");
         cerrarEntityManager();

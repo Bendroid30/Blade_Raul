@@ -1,6 +1,6 @@
-package colegio.controlador.dao;
+package org.example.colegio.controlador.dao;
 
-import colegio.modelo.Alumno;
+import org.example.colegio.modelo.Alumno;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public interface DAOAlumnosInterface<T> {
     List<T> anyadirLista(List<T> lista);
     boolean modificarTabla(T alumno);
     boolean insertarenTabla(T alumno);
-    void eliminardeTabla(T alumno);
+    boolean eliminardeTabla(long id);
     T buscarTabla(T alumno);
 
     List<T> listaAprobados();
